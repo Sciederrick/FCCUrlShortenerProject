@@ -25,6 +25,11 @@ app.post('/api/shorturl', (req, res) => {
   let original_url = req.body.url;
   try {
     original_url = new URL(original_url);
+    if (!((original_url.protocol === 'http:' || original_url.protocol === 'https:') && 
+        original_url.host.split('.')[0] === 'www' && 
+        original_url.host.split('.').pop() === 'com')) {
+          throw { code: 'ERR_INVALID_URL' };
+        }
     dns.lookup(original_url.host, (err, _) => {
       if (err) {
         throw null;
