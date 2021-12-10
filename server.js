@@ -27,7 +27,7 @@ app.post('/api/shorturl', (req, res) => {
     original_url = new URL(original_url);
     if (
       !(
-        original_url.protocol && 
+        (original_url.protocol === 'http:' || original_url.protocol === 'https:') && 
         original_url.host.split('.'))) {
           throw { code: 'ERR_INVALID_URL' };
         }
