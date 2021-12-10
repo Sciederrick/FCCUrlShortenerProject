@@ -22,7 +22,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/api/shorturl', (req, res) => {
-  const original_url = typeof(req.body.url) === 'string' && req.body.url.length > 0 ? req.body.url : false;
+  const original_url = typeof(req.body.url) === 'string' && req.body.url.length > 0 ? new URL(req.body.url).href : false;
   if (original_url) {
     dns.lookup(new URL(original_url).host, (err, _) => {
       if (err) {
