@@ -22,11 +22,12 @@ app.get('/', function(req, res) {
 });
 
 app.post('/api/shorturl', (req, res) => {
-  const original_url = typeof(req.body.url) === 'string' && req.body.url.length > 0 ? new URL(req.body.url).href : false;
-  if (original_url) {
-    dns.lookup(new URL(original_url).host, (err, _) => {
+  let original_url = req.body.url;
+  try {
+    original_url = new URL(original_url);
+    dns.lookup(original_url.host, (err, _) => {
       if (err) {
-        res.json({ error: 'invalid url' });
+        throw null;
       }
 
       let last_url = fs.readFileSync('./urls.txt', { encoding:'utf8', flag:'r' });
@@ -35,22 +36,19 @@ app.post('/api/shorturl', (req, res) => {
 
       let URLs = new URLsModel();
       URLs.shortUrl = last_url.toString();
-      URLs.originalUrl = original_url;              
+      URLs.originalUrl = original_url.href;              
       URLs.save((err) => {
         if(err){
-          res.status(500).send(err._message)
+          throw err;
         }else{
-          try {
-            fs.writeFileSync('./urls.txt', last_url.toString(), { encoding: 'utf8' });
-            res.json({ original_url:original_url, short_url: last_url });
-          } catch(_) {
-            res.status(500).json({ error: 'something went wrong', });
-          }
+          fs.writeFileSync('./urls.txt', last_url.toString(), { encoding: 'utf8' });
+          res.json({ original_url:original_url, short_url: last_url });
         }
       });
     });
-  } else {
-    res.json({ error: 'invalid url' });
+  } catch (err) {
+    if (err.code === 'ERR_INVALID_URL') res.json({ error: 'invalid url' });
+    res.json({ error: err });
   }
 });
 
